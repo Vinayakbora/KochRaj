@@ -16,22 +16,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
+import com.example.kochraj.R
+import com.example.kochraj.ui.theme.Juniper
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun RecommendedSearchCard(
     name: String,
-    specialty: String,
     rating: Float,
     reviews: Int,
-    price: Double,
     imageUrl: String,
     onAppointmentClick: () -> Unit,
     onCallClick: () -> Unit,
     onMessageClick: () -> Unit,
-    onCardClick: () -> Unit
+    onCardClick: () -> Unit,
+    location: String,
+    occupation: String
 ) {
     Card(
         modifier = Modifier
@@ -39,15 +41,18 @@ fun RecommendedSearchCard(
             .clickable { onCardClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Juniper
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Doctor",
+                text = occupation,
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.Gray
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -56,8 +61,16 @@ fun RecommendedSearchCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 // Doctor Image
+//                Image(
+//                    painter = rememberAsyncImagePainter(imageUrl),
+//                    contentDescription = "Doctor $name",
+//                    modifier = Modifier
+//                        .size(80.dp)
+//                        .clip(RoundedCornerShape(12.dp)),
+//                    contentScale = ContentScale.Crop
+//                )
                 Image(
-                    painter = rememberAsyncImagePainter(imageUrl),
+                    painter = painterResource(id = R.drawable.profile),
                     contentDescription = "Doctor $name",
                     modifier = Modifier
                         .size(80.dp)
@@ -75,9 +88,9 @@ fun RecommendedSearchCard(
                     )
 
                     Text(
-                        text = specialty,
+                        text = location,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = Color.Black
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -94,16 +107,10 @@ fun RecommendedSearchCard(
                         Text(
                             text = "$rating ($reviews reviews)",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray,
+                            color = Color.Black,
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
-
-                    Text(
-                        text = "$${String.format("%.2f", price)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
                 }
             }
 
@@ -124,7 +131,7 @@ fun RecommendedSearchCard(
                         Icon(
                             Icons.Default.Call,
                             contentDescription = "Call",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint =  Color.White
                         )
                     }
 
@@ -139,7 +146,7 @@ fun RecommendedSearchCard(
                         Icon(
                             Icons.Default.Email,
                             contentDescription = "Message",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint =  Color.White
                         )
                     }
                 }
@@ -153,7 +160,7 @@ fun RecommendedSearchCard(
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Make an Appointment")
+                    Text("Save Profile", color = Color.White)
                 }
             }
         }

@@ -1,12 +1,15 @@
 package com.example.kochraj.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,19 +18,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
+import androidx.navigation.NavHostController
+import com.example.kochraj.R
+import com.example.kochraj.navigation.Routes
+import com.example.kochraj.ui.theme.Aztec
+import com.example.kochraj.ui.theme.MintTulip
+import com.example.kochraj.ui.theme.NewContainer
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, navHostController: NavHostController) {
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(color = Aztec)
     ) {
         // Profile Header
         Card(
@@ -36,7 +45,7 @@ fun ProfileScreen(navController: NavController) {
                 .padding(16.dp),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF8A4FFF)
+                containerColor = MintTulip
             )
         ) {
             Column(
@@ -46,10 +55,11 @@ fun ProfileScreen(navController: NavController) {
                     .padding(24.dp)
             ) {
                 Image(
-                    painter = rememberAsyncImagePainter("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-23%20211619-Iq35k85BZAIGPRTgMqYQLjulmXFiGw.png"),
+                    painter = painterResource(id = R.drawable.profile),
                     contentDescription = "Profile Picture",
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(100.dp)
+                        .border(width = 1.dp, color = Color.Black, shape = CircleShape )
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
@@ -57,35 +67,39 @@ fun ProfileScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    "Avinab Sharma",
+                    "Deepak Ray",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White,
+                    color = Aztec,
                     fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    "Consumer Account",
+                    "Senior Surgeon",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = Aztec.copy(alpha = 0.8f)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { },
+                    onClick = {
+                        navHostController.navigate(Routes.PersonalDetailsScreen.route)
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
-                        contentColor = Color(0xFF8A4FFF)
+                        contentColor = Aztec
                     ),
                     shape = RoundedCornerShape(100.dp),
+                    border = BorderStroke(width = 1.dp, color = Aztec),
                     modifier = Modifier
                         .fillMaxWidth(0.8f)
                         .height(48.dp)
                 ) {
                     Text(
                         "Edit Profile",
+                        color = Aztec,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -103,35 +117,23 @@ fun ProfileScreen(navController: NavController) {
         )
 
         ProfileMenuItem(
-            icon = Icons.Outlined.LocationOn,
-            title = "Saved Addresses",
-            subtitle = "Manage your saved addresses",
-            onClick = {  }
-        )
-
-        ProfileMenuItem(
-            icon = Icons.Outlined.Create,
-            title = "Saved Payment Options",
-            subtitle = "Manage your payment options",
-            onClick = {  }
-        )
-
-        ProfileMenuItem(
             icon = Icons.Outlined.Close,
             title = "Log out",
             subtitle = "Logout of the application",
-            onClick = { showLogoutDialog = true }
-        )
-
-        HorizontalDivider(
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .padding(horizontal = 16.dp),
-            color = Color(0xFFE0E0E0)
+            onClick = {
+//                showLogoutDialog = true
+            }
         )
 
         ProfileMenuItem(
-            icon = Icons.Outlined.Warning,
+            icon = Icons.Outlined.Person,
+            title = "Profile Preview",
+            subtitle = "Preview Profile",
+            onClick = { }
+        )
+
+        ProfileMenuItem(
+            icon = Icons.Outlined.Info,
             title = "Help & Support",
             onClick = {  }
         )
@@ -193,7 +195,7 @@ private fun ProfileMenuItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color(0xFF8A4FFF).copy(alpha = 0.8f),
+                tint = MintTulip.copy(alpha = 0.8f),
                 modifier = Modifier.size(24.dp)
             )
 
@@ -203,13 +205,13 @@ private fun ProfileMenuItem(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF1F1F1F)
+                    color = NewContainer
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF757575)
+                        color = MintTulip
                     )
                 }
             }
@@ -229,7 +231,7 @@ private fun ProfileMenuItem(
             }
 
             Icon(
-                imageVector = Icons.Outlined.Person,
+                imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 contentDescription = "Navigate",
                 tint = Color(0xFFBDBDBD),
                 modifier = Modifier.size(24.dp)

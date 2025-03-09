@@ -12,7 +12,7 @@ import com.example.kochraj.screens.MainScreen
 fun AppNavHost() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.LoginScreen.route) {
+    NavHost(navController = navController, startDestination = Routes.HomeScreen.route) {
         composable(Routes.LoginScreen.route) {
             LoginScreen(navController)
         }

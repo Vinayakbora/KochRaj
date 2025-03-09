@@ -11,14 +11,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.kochraj.navigation.AppNavHost
+import com.example.kochraj.ui.theme.Aztec
 import com.example.kochraj.ui.theme.KochRajTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.FirebaseApp
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
         setContent {
             KochRajTheme {
+                val systemUiController = rememberSystemUiController()
+
+                systemUiController.setSystemBarsColor(
+                    color = Aztec,
+                )
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

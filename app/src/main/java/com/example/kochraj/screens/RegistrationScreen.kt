@@ -7,11 +7,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.kochraj.navigation.Routes
 import com.example.kochraj.ui.theme.EMPTY_STRING
 import com.example.kochraj.ui.theme.KochRajTheme
+import com.example.kochraj.viewmodels.UserViewModel
 
 @Composable
 fun RegistrationScreen(navController: NavController) {
