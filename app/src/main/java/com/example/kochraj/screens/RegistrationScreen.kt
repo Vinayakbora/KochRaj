@@ -11,16 +11,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.kochraj.navigation.Routes
-import com.example.kochraj.ui.theme.EMPTY_STRING
 import com.example.kochraj.ui.theme.KochRajTheme
 import com.example.kochraj.viewmodels.UserViewModel
 
 @Composable
-fun RegistrationScreen(navController: NavController) {
-    var name by remember { mutableStateOf(EMPTY_STRING) }
-    var email by remember { mutableStateOf(EMPTY_STRING) }
-    var phone by remember { mutableStateOf(EMPTY_STRING) }
-    var password by remember { mutableStateOf(EMPTY_STRING) }
+fun RegistrationScreen(
+    navController: NavController,
+    viewModel: UserViewModel = hiltViewModel()
+) {
+    val authState by viewModel.authState.collectAsState()
+    val registrationFormState by viewModel.registrationFormState.collectAsState()
+
+    LaunchedEffect(authState) {
+        if (authState is UserViewModel.AuthState.Success) {
+            navController.navigate(Routes.LoginScreen.route)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -36,46 +42,103 @@ fun RegistrationScreen(navController: NavController) {
         )
 
         OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
+            value = registrationFormState.name,
+            onValueChange = { viewModel.updateRegistrationName(it) },
             label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = registrationFormState.nameError != null,
+            supportingText = {
+                registrationFormState.nameError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = registrationFormState.email,
+            onValueChange = { viewModel.updateRegistrationEmail(it) },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = registrationFormState.emailError != null,
+            supportingText = {
+                registrationFormState.emailError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
+            value = registrationFormState.phone,
+            onValueChange = {
+                // Only allow digits and limit to 10 characters
+                if (it.all { char -> char.isDigit() } && it.length <= 10) {
+                    viewModel.updateRegistrationPhone(it)
+                }
+            },
             label = { Text("Phone") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = registrationFormState.phoneError != null,
+            supportingText = {
+                registrationFormState.phoneError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = registrationFormState.password,
+            onValueChange = { viewModel.updateRegistrationPassword(it) },
             label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = registrationFormState.passwordError != null,
+            supportingText = {
+                registrationFormState.passwordError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (authState is UserViewModel.AuthState.Error) {
+            Text(
+                text = (authState as UserViewModel.AuthState.Error).message,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
         Button(
-            onClick = { navController.navigate(Routes.HomeScreen.route) },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { viewModel.register() },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = authState !is UserViewModel.AuthState.Loading
         ) {
-            Text("Register")
+            if (authState is UserViewModel.AuthState.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text("Register")
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))

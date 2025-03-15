@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     kotlin("kapt")
     alias(libs.plugins.google.dagger.hilt)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -74,6 +75,10 @@ dependencies {
     kapt(libs.google.dagger.hilt.compiler)
     kaptAndroidTest (libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // Permissions
+    implementation(libs.accompanist.permissions)
+
 }
 
 kapt {

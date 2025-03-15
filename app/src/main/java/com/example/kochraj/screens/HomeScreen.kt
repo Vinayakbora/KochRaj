@@ -19,19 +19,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.kochraj.R
 import com.example.kochraj.ui.theme.Aztec
+import com.example.kochraj.viewmodels.UserViewModel
 import com.example.kochraj.widgets.CarouselItem
 import com.example.kochraj.widgets.GridCard
 import kotlinx.coroutines.delay
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(navController: NavHostController, viewModel: UserViewModel = hiltViewModel()) {
+
+    val userState by viewModel.userState.collectAsState()
+    val user = if (userState is UserViewModel.UserState.Success) {
+        (userState as UserViewModel.UserState.Success).user
+    } else null
+
     val carouselImages = arrayListOf(
         R.drawable.aa,
         R.drawable.bb,
@@ -67,7 +77,7 @@ fun HomeScreen(navController: NavHostController) {
     ) {
         item {
             Text(
-                text = "Hello Deepak",
+                text = "Hello ${user?.name ?: "User"}",
                 color = Color.White,
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(start = 16.dp, top = 25.dp, end = 16.dp)

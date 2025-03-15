@@ -31,7 +31,7 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun signUp(email: String, password: String): Resource<Boolean> {
         return try {
-            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            auth.createUserWithEmailAndPassword(email, password).await()
             Resource.Success(true)
         } catch (e: Exception) {
             Resource.Error(e.message ?: "An unknown error occurred")

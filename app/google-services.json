@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "720495403818",
+    "project_id": "kochraj-26d7d",
+    "storage_bucket": "kochraj-26d7d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720495403818:android:2d3ef19d36c321017b3453",
+        "android_client_info": {
+          "package_name": "com.example.kochraj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHYZlDctcM8QiNVQUfWQsRqFrXWA53usU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

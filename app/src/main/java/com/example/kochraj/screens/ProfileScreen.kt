@@ -1,5 +1,6 @@
 package com.example.kochraj.screens
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,20 +19,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.kochraj.R
 import com.example.kochraj.navigation.Routes
 import com.example.kochraj.ui.theme.Aztec
+import com.example.kochraj.ui.theme.EMPTY_STRING
 import com.example.kochraj.ui.theme.MintTulip
 import com.example.kochraj.ui.theme.NewContainer
+import com.example.kochraj.viewmodels.UserViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController, navHostController: NavHostController) {
+fun ProfileScreen(
+    navController: NavController,
+    navHostController: NavHostController,
+    viewModel: UserViewModel = hiltViewModel()
+) {
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    val isUploadingImage by viewModel.isUploadingImage.collectAsState()
+
+    val userState by viewModel.userState.collectAsState()
+    val user = if (userState is UserViewModel.UserState.Success) {
+        (userState as UserViewModel.UserState.Success).user
+    } else null
+
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+    fun onLogout() {
+        sharedPreferences.edit().putBoolean("is_logged_in", false).apply()
+        navController.navigate(Routes.LoginScreen.route) {
+            popUpTo(Routes.HomeScreen.route) { inclusive = true }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -67,7 +93,7 @@ fun ProfileScreen(navController: NavController, navHostController: NavHostContro
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    "Deepak Ray",
+                    text = user?.name ?: "User",
                     style = MaterialTheme.typography.headlineSmall,
                     color = Aztec,
                     fontWeight = FontWeight.Bold
@@ -76,7 +102,7 @@ fun ProfileScreen(navController: NavController, navHostController: NavHostContro
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    "Senior Surgeon",
+                    text = user?.profession ?: EMPTY_STRING,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Aztec.copy(alpha = 0.8f)
                 )
@@ -121,7 +147,7 @@ fun ProfileScreen(navController: NavController, navHostController: NavHostContro
             title = "Log out",
             subtitle = "Logout of the application",
             onClick = {
-//                showLogoutDialog = true
+                showLogoutDialog = true
             }
         )
 
@@ -155,8 +181,8 @@ fun ProfileScreen(navController: NavController, navHostController: NavHostContro
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
-                        // Perform logout
-                        navController.navigate("login") {
+                        viewModel.logout(::onLogout)
+                        navController.navigate(Routes.LoginScreen.route) {
                             popUpTo(0) // Clear back stack
                         }
                     }
