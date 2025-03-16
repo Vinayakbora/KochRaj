@@ -16,6 +16,7 @@ data class User(
     val bloodGroup: String = "",
     val languages: List<String> = emptyList(),
     val skills: String = "",
+    val phone: String = "",
     val email: String = "",
     val photoUrl: String = ""
 )

@@ -1,5 +1,6 @@
 package com.example.kochraj.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,9 +11,12 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.kochraj.ui.theme.Aztec
+import com.example.kochraj.ui.theme.MintTulip
 import com.example.kochraj.viewmodels.UserViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -35,6 +39,7 @@ fun PersonalDetailsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(color = Aztec)
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
@@ -214,7 +219,7 @@ fun PersonalDetailsScreen(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
-            minLines = 3,
+            minLines = 2,
             isError = personalDetailsState.permanentAddressError != null,
             supportingText = {
                 personalDetailsState.permanentAddressError?.let {
@@ -234,7 +239,7 @@ fun PersonalDetailsScreen(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
-            minLines = 3,
+            minLines = 2,
             isError = personalDetailsState.presentAddressError != null,
             supportingText = {
                 personalDetailsState.presentAddressError?.let {
@@ -319,6 +324,9 @@ fun PersonalDetailsScreen(
                     navController.popBackStack()
                 }
             },
+            colors =  ButtonDefaults.buttonColors(
+                containerColor = MintTulip, contentColor = Aztec
+            ),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Save Details")

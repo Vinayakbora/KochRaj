@@ -33,7 +33,8 @@ fun RecommendedSearchCard(
     onMessageClick: () -> Unit,
     onCardClick: () -> Unit,
     location: String,
-    occupation: String
+    occupation: String,
+    isFavourite: Boolean = false
 ) {
     Card(
         modifier = Modifier
@@ -160,7 +161,10 @@ fun RecommendedSearchCard(
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Save Profile", color = Color.White)
+                    Text(
+                        text = if (isFavourite) "Remove Profile" else "Save Profile",
+                        color = Color.White
+                    )
                 }
             }
         }

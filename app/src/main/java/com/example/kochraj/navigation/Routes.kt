@@ -10,4 +10,8 @@ sealed class Routes(val route: String) {
     data object ProfileScreen : Routes("Profile")
     data object ProductDetailsScreen : Routes("ProductDetails")
     data object PersonalDetailsScreen : Routes("PersonalDetailsScreen")
+    data object MyAccountScreen : Routes("MyAccountScreen")
+    data object ProfilePreviewScreen : Routes("ProfilePreviewScreen")
+    data object HelpAndSupportScreen : Routes("HelpAndSupportScreen")
+    data object AboutUsScreen : Routes("AboutUsScreen")
 }

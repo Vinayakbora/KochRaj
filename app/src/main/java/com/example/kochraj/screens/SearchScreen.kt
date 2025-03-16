@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.kochraj.navigation.Routes
@@ -18,7 +19,7 @@ import com.example.kochraj.widgets.RecommendedSearchCard
 @Composable
 fun SearchScreen(navController: NavHostController) {
     var searchQuery by remember { mutableStateOf(EMPTY_STRING) }
-
+    val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier
             .background(color = Aztec)
@@ -50,8 +51,8 @@ fun SearchScreen(navController: NavHostController) {
                     reviews = 102,
                     imageUrl = "/placeholder.svg?height=80&width=80",
                     onAppointmentClick = { },
-                    onCallClick = { },
-                    onMessageClick = { },
+                    onCallClick = { uriHandler.openUri("tel:+918724974038") },
+                    onMessageClick = { uriHandler.openUri("mailto:support@kochraj.com") },
                     onCardClick = { navController.navigate(Routes.ProductDetailsScreen.route) }
                 )
             }

@@ -1,5 +1,6 @@
 package com.example.kochraj.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kochraj.domaim.model.User
@@ -20,6 +21,8 @@ class UserViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    private val TAG = "UserViewModel"
+
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
@@ -36,9 +39,11 @@ class UserViewModel @Inject constructor(
     private val _loginFormState = MutableStateFlow(LoginFormState())
     val loginFormState: StateFlow<LoginFormState> = _loginFormState.asStateFlow()
 
-
     private val _isUploadingImage = MutableStateFlow(false)
     val isUploadingImage: StateFlow<Boolean> = _isUploadingImage.asStateFlow()
+
+    private val _uploadImageError = MutableStateFlow<String?>(null)
+    val uploadImageError: StateFlow<String?> = _uploadImageError.asStateFlow()
 
     init {
         checkAuthState()
@@ -177,6 +182,7 @@ class UserViewModel @Inject constructor(
                         val user = User(
                             id = userId,
                             name = currentState.name,
+                            phone = currentState.phone,
                             email = currentState.email
                         )
                         userRepository.createUser(user)
@@ -253,6 +259,9 @@ class UserViewModel @Inject constructor(
             val personalDetails = _personalDetailsState.value
             val userId = userRepository.getCurrentUserId() ?: return@launch
 
+            // Get current user to preserve photoUrl
+            val currentUser = (_userState.value as? UserState.Success)?.user
+
             val user = User(
                 id = userId,
                 name = personalDetails.name,
@@ -269,7 +278,9 @@ class UserViewModel @Inject constructor(
                 bloodGroup = personalDetails.bloodGroup,
                 languages = personalDetails.languagesKnown,
                 skills = personalDetails.skills,
-                email = personalDetails.email
+                email = personalDetails.email,
+                phone = personalDetails.phone,
+                photoUrl = currentUser?.photoUrl ?: ""
             )
 
             val result = userRepository.updateUser(user)
@@ -284,19 +295,33 @@ class UserViewModel @Inject constructor(
     fun uploadProfilePhoto(photoBytes: ByteArray) {
         viewModelScope.launch {
             _isUploadingImage.value = true
-            val userId = userRepository.getCurrentUserId() ?: return@launch
+            _uploadImageError.value = null
+
+            val userId = userRepository.getCurrentUserId()
+            if (userId == null) {
+                _isUploadingImage.value = false
+                _uploadImageError.value = "User not authenticated"
+                return@launch
+            }
+
+            Log.d(TAG, "Starting profile photo upload for user: $userId")
             val result = userRepository.uploadUserPhoto(userId, photoBytes)
 
             _isUploadingImage.value = false
 
-            if (result is Resource.Success && result.data != null) {
-                val photoUrl = result.data
-                // Update user with new photo URL
-                _userState.value.let { state ->
-                    if (state is UserState.Success) {
-                        val updatedUser = state.user.copy(photoUrl = photoUrl)
-                        userRepository.updateUser(updatedUser)
-                    }
+            when (result) {
+                is Resource.Success -> {
+                    Log.d(TAG, "Profile photo uploaded successfully: ${result.data}")
+                    // The repository now handles updating the user document
+                    // Refresh user data to get the updated photo URL
+                    getUserDetails(userId)
+                }
+                is Resource.Error -> {
+                    Log.e(TAG, "Error uploading profile photo: ${result.message}")
+                    _uploadImageError.value = result.message
+                }
+                is Resource.Loading -> {
+                    // This state should not occur here
                 }
             }
         }
@@ -319,7 +344,9 @@ class UserViewModel @Inject constructor(
                 bloodGroup = user.bloodGroup,
                 languagesKnown = user.languages,
                 skills = user.skills,
-                email = user.email
+                phone = user.phone,
+                email = user.email,
+                photoUrl = user.photoUrl
             )
         }
     }
@@ -580,7 +607,9 @@ class UserViewModel @Inject constructor(
         val bloodGroup: String = "",
         val languagesKnown: List<String> = emptyList(),
         val skills: String = "",
-        val email: String = ""
+        val email: String = "",
+        val phone: String = "",
+        val photoUrl: String = ""
     )
 
     data class RegistrationFormState(

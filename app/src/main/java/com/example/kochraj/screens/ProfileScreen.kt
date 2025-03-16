@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -16,9 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +30,7 @@ import com.example.kochraj.ui.theme.EMPTY_STRING
 import com.example.kochraj.ui.theme.MintTulip
 import com.example.kochraj.ui.theme.NewContainer
 import com.example.kochraj.viewmodels.UserViewModel
+import com.example.kochraj.widgets.ProfileImagePicker
 
 @Composable
 fun ProfileScreen(
@@ -80,14 +78,12 @@ fun ProfileScreen(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.profile),
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .border(width = 1.dp, color = Color.Black, shape = CircleShape )
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
+                ProfileImagePicker(
+                    currentImageUrl = user?.photoUrl,
+                    onImageSelected = { imageBytes ->
+                        viewModel.uploadProfilePhoto(imageBytes)
+                    },
+                    isUploading = isUploadingImage
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -135,15 +131,14 @@ fun ProfileScreen(
 
         // Menu Items
         ProfileMenuItem(
-            icon = Icons.Outlined.Person,
+            icon = R.drawable.user,
             title = "My Account",
             subtitle = "Make changes to your account",
-            showWarning = true,
-            onClick = { }
+            onClick = { navController.navigate(Routes.MyAccountScreen.route) }
         )
 
         ProfileMenuItem(
-            icon = Icons.Outlined.Close,
+            icon = R.drawable.signout,
             title = "Log out",
             subtitle = "Logout of the application",
             onClick = {
@@ -152,22 +147,24 @@ fun ProfileScreen(
         )
 
         ProfileMenuItem(
-            icon = Icons.Outlined.Person,
+            icon = R.drawable.preview,
             title = "Profile Preview",
             subtitle = "Preview Profile",
-            onClick = { }
+            onClick = { navController.navigate(Routes.ProfilePreviewScreen.route) }
         )
 
         ProfileMenuItem(
-            icon = Icons.Outlined.Info,
+            icon = R.drawable.interrogation,
             title = "Help & Support",
-            onClick = {  }
+            subtitle = "Contact Us",
+            onClick = { navController.navigate(Routes.HelpAndSupportScreen.route) }
         )
 
         ProfileMenuItem(
-            icon = Icons.Outlined.Info,
+            icon = R.drawable.info,
             title = "About App",
-            onClick = {  }
+            subtitle = "About this app",
+            onClick = { navController.navigate(Routes.AboutUsScreen.route) }
         )
     }
 
@@ -201,10 +198,9 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileMenuItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Int,
     title: String,
     subtitle: String? = null,
-    showWarning: Boolean = false,
     onClick: () -> Unit
 ) {
     Row(
@@ -218,10 +214,10 @@ private fun ProfileMenuItem(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
+            Image(
+                painter = painterResource(icon),
                 contentDescription = null,
-                tint = MintTulip.copy(alpha = 0.8f),
+                colorFilter = ColorFilter.tint(MintTulip.copy(alpha = 0.8f)),
                 modifier = Modifier.size(24.dp)
             )
 
@@ -246,15 +242,15 @@ private fun ProfileMenuItem(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (showWarning) {
-                Icon(
-                    imageVector = Icons.Outlined.Warning,
-                    contentDescription = "Warning",
-                    tint = Color(0xFFFF3B30),
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
+//            if (showWarning) {
+//                Icon(
+//                    imageVector = Icons.Outlined.Warning,
+//                    contentDescription = "Warning",
+//                    tint = Color(0xFFFF3B30),
+//                    modifier = Modifier.size(20.dp)
+//                )
+//                Spacer(modifier = Modifier.width(8.dp))
+//            }
 
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,

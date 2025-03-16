@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.kochraj.navigation.Routes
@@ -17,6 +18,7 @@ import com.example.kochraj.widgets.RecommendedSearchCard
 
 @Composable
 fun FavoritesScreen(navController: NavHostController) {
+    val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier.background(color = Aztec)
     ) {
@@ -28,6 +30,7 @@ fun FavoritesScreen(navController: NavHostController) {
         )
         LazyColumn {
             items(5) { index ->
+
                 RecommendedSearchCard(
                     name = if (index == 0) "Dr. Deepak Ray" else "Aniket Sarkar",
                     location = "Guwahati, Assam",
@@ -36,9 +39,10 @@ fun FavoritesScreen(navController: NavHostController) {
                     reviews = 102,
                     imageUrl = "/placeholder.svg?height=80&width=80",
                     onAppointmentClick = { },
-                    onCallClick = { },
-                    onMessageClick = { },
-                    onCardClick = { navController.navigate(Routes.ProductDetailsScreen.route) }
+                    onCallClick = { uriHandler.openUri("tel:+918724974038") },
+                    onMessageClick = { uriHandler.openUri("mailto:support@kochraj.com") },
+                    onCardClick = { navController.navigate(Routes.ProductDetailsScreen.route) },
+                    isFavourite = true
                 )
             }
         }

@@ -19,6 +19,7 @@ interface UserRepository {
     suspend fun getUserById(userId: String): Flow<Resource<User>>
     suspend fun getAllUsers(): Flow<Resource<List<User>>>
     suspend fun deleteUser(userId: String): Resource<Boolean>
+    suspend fun updateUserPhotoUrl(userId: String, photoUrl: String): Resource<Boolean>
 
     // File upload
     suspend fun uploadUserPhoto(userId: String, photoBytes: ByteArray): Resource<String>
