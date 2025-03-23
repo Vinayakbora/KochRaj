@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,13 +26,13 @@ import com.example.kochraj.ui.theme.Juniper
 fun RecommendedSearchCard(
     name: String,
     imageUrl: String,
-    onAppointmentClick: () -> Unit,
     onCallClick: () -> Unit,
     onMessageClick: () -> Unit,
     onCardClick: () -> Unit,
     location: String,
     profession: String,
-    isFavourite: Boolean = false
+    isFavourite: Boolean,
+    onFavoriteToggle: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -129,18 +131,14 @@ fun RecommendedSearchCard(
                     }
                 }
 
-                // Appointment Button
-                Button(
-                    onClick = onAppointmentClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        contentColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(8.dp)
+                IconButton(
+                    onClick = onFavoriteToggle,
+                    modifier = Modifier.size(40.dp)
                 ) {
-                    Text(
-                        text = if (isFavourite) "Remove Profile" else "Save Profile",
-                        color = Color.White
+                    Icon(
+                        imageVector = if (isFavourite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (isFavourite) "Remove from favorites" else "Add to favorites",
+                        tint = if (isFavourite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

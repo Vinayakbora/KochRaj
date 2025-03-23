@@ -1,6 +1,8 @@
 package com.example.kochraj.data.repository
 
 import android.util.Log
+import com.example.kochraj.domaim.model.Favorite
+import java.util.UUID
 import com.example.kochraj.domaim.model.User
 import com.example.kochraj.domaim.repository.UserRepository
 import com.example.kochraj.utils.Resource
@@ -12,6 +14,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.flow.first
 
 class UserRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
@@ -21,6 +25,217 @@ class UserRepositoryImpl @Inject constructor(
 
     private val TAG = "UserRepositoryImpl"
     private val usersCollection = firestore.collection("users")
+    private val favoritesCollection = firestore.collection("favorites")
+
+    // Favorites methods
+    override suspend fun addFavorite(favoriteUserId: String): Resource<Boolean> {
+        return try {
+            val currentUserId = getCurrentUserId() ?: return Resource.Error("User not authenticated")
+
+            // Check if already a favorite
+            val existingFavorite = favoritesCollection
+                .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("favoriteUserId", favoriteUserId)
+                .get()
+                .await()
+
+            if (!existingFavorite.isEmpty) {
+                return Resource.Success(true) // Already a favorite
+            }
+
+            // Create new favorite
+            val favoriteId = UUID.randomUUID().toString()
+            val favorite = Favorite(
+                id = favoriteId,
+                userId = currentUserId,
+                favoriteUserId = favoriteUserId,
+                timestamp = System.currentTimeMillis()
+            )
+
+            favoritesCollection.document(favoriteId).set(favorite).await()
+            Log.d(TAG, "Added favorite: $favoriteUserId for user: $currentUserId")
+            Resource.Success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error adding favorite: ${e.message}", e)
+            Resource.Error(e.message ?: "An unknown error occurred")
+        }
+    }
+
+    override suspend fun removeFavorite(favoriteUserId: String): Resource<Boolean> {
+        return try {
+            val currentUserId = getCurrentUserId() ?: return Resource.Error("User not authenticated")
+
+            // Find the favorite document
+            val favoriteQuery = favoritesCollection
+                .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("favoriteUserId", favoriteUserId)
+                .get()
+                .await()
+
+            if (favoriteQuery.isEmpty) {
+                return Resource.Error("Favorite not found")
+            }
+
+            // Delete the favorite document
+            val favoriteDoc = favoriteQuery.documents.first()
+            favoritesCollection.document(favoriteDoc.id).delete().await()
+
+            Log.d(TAG, "Removed favorite: $favoriteUserId for user: $currentUserId")
+            Resource.Success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error removing favorite: ${e.message}", e)
+            Resource.Error(e.message ?: "An unknown error occurred")
+        }
+    }
+
+    override suspend fun getFavorites(): Flow<Resource<List<Favorite>>> = callbackFlow {
+        try {
+            val currentUserId = getCurrentUserId()
+            if (currentUserId == null) {
+                trySend(Resource.Error("User not authenticated"))
+                close()
+                return@callbackFlow
+            }
+
+            val query = favoritesCollection
+                .whereEqualTo("userId", currentUserId)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+
+            val snapshotListener = query.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error getting favorites: ${error.message}", error)
+                    trySend(Resource.Error(error.message ?: "An unknown error occurred"))
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    try {
+                        val favorites = snapshot.documents.mapNotNull {
+                            it.toObject(Favorite::class.java)
+                        }
+                        Log.d(TAG, "Fetched ${favorites.size} favorites for user: $currentUserId")
+                        trySend(Resource.Success(favorites))
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing favorites: ${e.message}", e)
+                        trySend(Resource.Error("Error parsing favorites: ${e.message}"))
+                    }
+                } else {
+                    trySend(Resource.Success(emptyList()))
+                }
+            }
+
+            awaitClose { snapshotListener.remove() }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up favorites query: ${e.message}", e)
+            trySend(Resource.Error("Error setting up favorites query: ${e.message}"))
+            close(e)
+        }
+    }
+
+    override suspend fun isFavorite(favoriteUserId: String): Flow<Resource<Boolean>> = callbackFlow {
+        try {
+            val currentUserId = getCurrentUserId()
+            if (currentUserId == null) {
+                trySend(Resource.Error("User not authenticated"))
+                close()
+                return@callbackFlow
+            }
+
+            val query = favoritesCollection
+                .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("favoriteUserId", favoriteUserId)
+
+            val snapshotListener = query.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error checking favorite status: ${error.message}", error)
+                    trySend(Resource.Error(error.message ?: "An unknown error occurred"))
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val isFavorite = !snapshot.isEmpty
+                    trySend(Resource.Success(isFavorite))
+                } else {
+                    trySend(Resource.Success(false))
+                }
+            }
+
+            awaitClose { snapshotListener.remove() }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up favorite check: ${e.message}", e)
+            trySend(Resource.Error("Error setting up favorite check: ${e.message}"))
+            close(e)
+        }
+    }
+
+    override suspend fun getFavoriteUsers(): Flow<Resource<List<User>>> = callbackFlow {
+        try {
+            val currentUserId = getCurrentUserId()
+            if (currentUserId == null) {
+                trySend(Resource.Error("User not authenticated"))
+                close()
+                return@callbackFlow
+            }
+
+            // Get favorites first
+            val favoritesFlow = getFavorites()
+            val favoritesResult = favoritesFlow.first()
+
+            if (favoritesResult is Resource.Error) {
+                trySend(Resource.Error(favoritesResult.message ?: "Error fetching favorites"))
+                close()
+                return@callbackFlow
+            }
+
+            val favorites = (favoritesResult as Resource.Success).data ?: emptyList()
+            if (favorites.isEmpty()) {
+                trySend(Resource.Success(emptyList()))
+                close()
+                return@callbackFlow
+            }
+
+            // Get the IDs of favorite users
+            val favoriteUserIds = favorites.map { it.favoriteUserId }
+
+            // Create a query to listen for changes to any of these users
+            val query = usersCollection.whereIn("id", favoriteUserIds)
+
+            val snapshotListener = query.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error getting favorite users: ${error.message}", error)
+                    trySend(Resource.Error(error.message ?: "An unknown error occurred"))
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    try {
+                        val users = snapshot.documents.mapNotNull {
+                            it.toObject(User::class.java)
+                        }
+
+                        // Sort users to match the order of favorites
+                        val sortedUsers = favoriteUserIds.mapNotNull { favoriteId ->
+                            users.find { it.id == favoriteId }
+                        }
+
+                        Log.d(TAG, "Fetched ${sortedUsers.size} favorite users for user: $currentUserId")
+                        trySend(Resource.Success(sortedUsers))
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing favorite users: ${e.message}", e)
+                        trySend(Resource.Error("Error parsing favorite users: ${e.message}"))
+                    }
+                } else {
+                    trySend(Resource.Success(emptyList()))
+                }
+            }
+
+            awaitClose { snapshotListener.remove() }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up favorite users query: ${e.message}", e)
+            trySend(Resource.Error("Error setting up favorite users query: ${e.message}"))
+            close(e)
+        }
+    }
 
     override suspend fun signIn(email: String, password: String): Resource<Boolean> {
         return try {

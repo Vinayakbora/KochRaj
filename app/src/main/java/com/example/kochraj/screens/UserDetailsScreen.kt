@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +40,7 @@ import com.example.kochraj.domaim.model.User
 import com.example.kochraj.ui.theme.Aztec
 import com.example.kochraj.ui.theme.EMPTY_STRING
 import com.example.kochraj.ui.theme.MintTulip
+import com.example.kochraj.viewmodels.FavoritesViewModel
 import com.example.kochraj.viewmodels.UserSearchViewModel
 import com.example.kochraj.viewmodels.UserViewModel
 
@@ -46,10 +49,13 @@ fun UserDetailsScreen(
     navController: NavController,
     userId: String,
     userViewModel: UserViewModel = hiltViewModel(),
-    searchViewModel: UserSearchViewModel = hiltViewModel()
+    searchViewModel: UserSearchViewModel = hiltViewModel(),
+    favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val userState by userViewModel.userState.collectAsState()
     val selectedUser by searchViewModel.selectedUser.collectAsState()
+
+    val favoriteStatusMap by favoritesViewModel.favoriteStatusMap.collectAsState()
 
     // If we have a selected user from search, use that
     // Otherwise, fetch the user details using the userId
@@ -57,6 +63,9 @@ fun UserDetailsScreen(
         if (selectedUser?.id != userId) {
             userViewModel.getUserDetails(userId)
         }
+
+        // Check favorite status
+        favoritesViewModel.checkFavoriteStatus(userId)
     }
 
     // Determine which user to display
@@ -69,7 +78,13 @@ fun UserDetailsScreen(
     }
 
     if (user != null) {
-        UserDetailsContent(user = user, navController = navController)
+        UserDetailsContent(
+            user = user,
+            navController = navController,
+            favoritesViewModel = favoritesViewModel,
+            favoriteStatusMap = favoriteStatusMap,
+            userId = userId
+        )
     } else if (userState is UserViewModel.UserState.Loading) {
         Box(
             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
@@ -91,9 +106,15 @@ fun UserDetailsScreen(
 
 @Composable
 fun UserDetailsContent(
-    user: User, navController: NavController,
+    user: User,
+    navController: NavController,
+    favoritesViewModel: FavoritesViewModel,
+    favoriteStatusMap: Map<String, Boolean>,
+    userId: String,
 ) {
     val uriHandler = LocalUriHandler.current
+    val isFavorite = favoriteStatusMap[userId] ?: false
+
     LazyColumn(
         modifier = Modifier
             .background(color = Aztec)
@@ -113,6 +134,19 @@ fun UserDetailsContent(
                     fontSize = 24.sp,
                     modifier = Modifier.padding(start = 8.dp)
                 )
+                Spacer(Modifier.weight(1f))
+                IconButton(
+                    onClick = {
+                        user.let { favoritesViewModel.toggleFavorite(it) }
+                    },
+                    modifier = Modifier.padding(end = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                        tint = if (isFavorite) Color.Red else LocalContentColor.current
+                    )
+                }
             }
         }
         item {

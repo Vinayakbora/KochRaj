@@ -18,16 +18,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.kochraj.ui.theme.Aztec
 import com.example.kochraj.ui.theme.EMPTY_STRING
+import com.example.kochraj.viewmodels.FavoritesViewModel
 import com.example.kochraj.viewmodels.UserSearchViewModel
 import com.example.kochraj.widgets.RecommendedSearchCard
 
 @Composable
 fun SearchScreen(
     navController: NavController,
-    viewModel: UserSearchViewModel = hiltViewModel()
+    searchViewModel: UserSearchViewModel = hiltViewModel(),
+    favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val searchState by viewModel.searchState.collectAsState()
+    val searchQuery by searchViewModel.searchQuery.collectAsState()
+    val searchState by searchViewModel.searchState.collectAsState()
+    val favoriteStatusMap by favoritesViewModel.favoriteStatusMap.collectAsState()
     val uriHandler = LocalUriHandler.current
 
     Column(
@@ -39,7 +42,7 @@ fun SearchScreen(
         // Search bar
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { viewModel.updateSearchQuery(it) },
+            onValueChange = { searchViewModel.updateSearchQuery(it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
@@ -47,7 +50,7 @@ fun SearchScreen(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                    IconButton(onClick = { searchViewModel.updateSearchQuery("") }) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear search")
                     }
                 }
@@ -102,15 +105,28 @@ fun SearchScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             items(users) { user ->
+                                // Check if this user is in favorites
+                                val isFavorite = favoriteStatusMap[user.id] ?: false
+
+                                // If we don't have the status yet, check it
+                                LaunchedEffect(user.id) {
+                                    if (!favoriteStatusMap.containsKey(user.id)) {
+                                        favoritesViewModel.checkFavoriteStatus(user.id)
+                                    }
+                                }
+
                                 RecommendedSearchCard(
                                     name = user.name ?: EMPTY_STRING,
                                     imageUrl = "/placeholder.svg?height=80&width=80",
-                                    onAppointmentClick = { },
                                     onCallClick = {uriHandler.openUri("tel:+91${user.phone}") },
                                     onMessageClick = { uriHandler.openUri("mailto:${user.email}") },
                                     onCardClick = {
-                                        viewModel.selectUser(user)
+                                        searchViewModel.selectUser(user)
                                         navController.navigate("UserDetailsScreen/${user.id}")
+                                    },
+                                    isFavourite = isFavorite,
+                                    onFavoriteToggle = {
+                                        favoritesViewModel.toggleFavorite(user)
                                     },
                                     location = user.presentAddress ?: EMPTY_STRING,
                                     profession = user.profession ?: EMPTY_STRING
@@ -140,7 +156,7 @@ fun SearchScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(onClick = {
-                            viewModel.updateSearchQuery("") // This will trigger fetchAllUsers()
+                            searchViewModel.updateSearchQuery("") // This will trigger fetchAllUsers()
                         }) {
                             Text("Retry")
                         }

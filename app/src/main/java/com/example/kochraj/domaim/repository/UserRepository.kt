@@ -1,5 +1,6 @@
 package com.example.kochraj.domaim.repository
 
+import com.example.kochraj.domaim.model.Favorite
 import com.example.kochraj.domaim.model.User
 import com.example.kochraj.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,13 @@ interface UserRepository {
     suspend fun deleteUser(userId: String): Resource<Boolean>
     suspend fun updateUserPhotoUrl(userId: String, photoUrl: String): Resource<Boolean>
     suspend fun searchUsers(query: String): Flow<Resource<List<User>>>
+
+    // Favorites
+    suspend fun addFavorite(favoriteUserId: String): Resource<Boolean>
+    suspend fun removeFavorite(favoriteUserId: String): Resource<Boolean>
+    suspend fun getFavorites(): Flow<Resource<List<Favorite>>>
+    suspend fun isFavorite(favoriteUserId: String): Flow<Resource<Boolean>>
+    suspend fun getFavoriteUsers(): Flow<Resource<List<User>>>
 
     // File upload
     suspend fun uploadUserPhoto(userId: String, photoBytes: ByteArray): Resource<String>
