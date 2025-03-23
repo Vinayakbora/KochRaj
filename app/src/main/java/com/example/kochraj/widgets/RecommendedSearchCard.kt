@@ -8,10 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -25,15 +23,13 @@ import com.example.kochraj.ui.theme.Juniper
 @Composable
 fun RecommendedSearchCard(
     name: String,
-    rating: Float,
-    reviews: Int,
     imageUrl: String,
     onAppointmentClick: () -> Unit,
     onCallClick: () -> Unit,
     onMessageClick: () -> Unit,
     onCardClick: () -> Unit,
     location: String,
-    occupation: String,
+    profession: String,
     isFavourite: Boolean = false
 ) {
     Card(
@@ -50,14 +46,6 @@ fun RecommendedSearchCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = occupation,
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.Black
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -96,22 +84,11 @@ fun RecommendedSearchCard(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = Color(0xFFFFC107),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "$rating ($reviews reviews)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Black,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                    }
+                    Text(
+                        text = profession,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.Black
+                    )
                 }
             }
 

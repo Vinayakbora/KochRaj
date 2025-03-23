@@ -2,6 +2,7 @@ package com.example.kochraj.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
@@ -20,7 +21,9 @@ import com.example.kochraj.widgets.RecommendedSearchCard
 fun FavoritesScreen(navController: NavHostController) {
     val uriHandler = LocalUriHandler.current
     Column(
-        modifier = Modifier.background(color = Aztec)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Aztec)
     ) {
         Text(
             text = "Saved Profiles",
@@ -28,24 +31,24 @@ fun FavoritesScreen(navController: NavHostController) {
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(16.dp)
         )
-        LazyColumn {
-            items(5) { index ->
-
-                RecommendedSearchCard(
-                    name = if (index == 0) "Dr. Deepak Ray" else "Aniket Sarkar",
-                    location = "Guwahati, Assam",
-                    occupation = "Doctor",
-                    rating = 4.8f,
-                    reviews = 102,
-                    imageUrl = "/placeholder.svg?height=80&width=80",
-                    onAppointmentClick = { },
-                    onCallClick = { uriHandler.openUri("tel:+918724974038") },
-                    onMessageClick = { uriHandler.openUri("mailto:support@kochraj.com") },
-                    onCardClick = { navController.navigate(Routes.ProductDetailsScreen.route) },
-                    isFavourite = true
-                )
-            }
-        }
+//        LazyColumn {
+//            items(5) { index ->
+//
+//                RecommendedSearchCard(
+//                    name = if (index == 0) "Dr. Deepak Ray" else "Aniket Sarkar",
+//                    location = "Guwahati, Assam",
+//                    occupation = "Doctor",
+//                    rating = 4.8f,
+//                    reviews = 102,
+//                    imageUrl = "/placeholder.svg?height=80&width=80",
+//                    onAppointmentClick = { },
+//                    onCallClick = { uriHandler.openUri("tel:+918724974038") },
+//                    onMessageClick = { uriHandler.openUri("mailto:support@kochraj.com") },
+//                    onCardClick = { navController.navigate(Routes.UserDetailsScreen.route) },
+//                    isFavourite = true
+//                )
+//            }
+//        }
     }
 }
 

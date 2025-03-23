@@ -130,24 +130,6 @@ class UserRepositoryImpl @Inject constructor(
         awaitClose { snapshotListener.remove() }
     }
 
-    override suspend fun getAllUsers(): Flow<Resource<List<User>>> = callbackFlow {
-        val snapshotListener = usersCollection.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                trySend(Resource.Error(error.message ?: "An unknown error occurred"))
-                return@addSnapshotListener
-            }
-
-            if (snapshot != null) {
-                val users = snapshot.documents.mapNotNull { it.toObject(User::class.java) }
-                trySend(Resource.Success(users))
-            } else {
-                trySend(Resource.Error("No users found"))
-            }
-        }
-
-        awaitClose { snapshotListener.remove() }
-    }
-
     override suspend fun deleteUser(userId: String): Resource<Boolean> {
         return try {
             usersCollection.document(userId).delete().await()
@@ -192,6 +174,113 @@ class UserRepositoryImpl @Inject constructor(
             Resource.Success(downloadUrl)
         } catch (e: Exception) {
             Resource.Error(e.message ?: "An unknown error occurred")
+        }
+    }
+
+    override suspend fun getAllUsers(): Flow<Resource<List<User>>> = callbackFlow {
+        try {
+            Log.d(TAG, "Fetching all users")
+
+            // Get the current user ID to exclude from results
+            val currentUserId = getCurrentUserId()
+
+            val snapshotListener = usersCollection.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error fetching users: ${error.message}", error)
+                    trySend(Resource.Error(error.message ?: "An unknown error occurred"))
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    try {
+                        val users = snapshot.documents
+                            .mapNotNull { it.toObject(User::class.java) }
+                            .filter { it.id != currentUserId } // Exclude current user
+
+                        Log.d(TAG, "Fetched ${users.size} users (excluding current user)")
+                        trySend(Resource.Success(users))
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing users: ${e.message}", e)
+                        trySend(Resource.Error("Error parsing users: ${e.message}"))
+                    }
+                } else {
+                    Log.d(TAG, "No users found")
+                    trySend(Resource.Success(emptyList()))
+                }
+            }
+
+            awaitClose { snapshotListener.remove() }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up users query: ${e.message}", e)
+            trySend(Resource.Error("Error setting up users query: ${e.message}"))
+            close(e)
+        }
+    }
+
+    override suspend fun searchUsers(query: String): Flow<Resource<List<User>>> = callbackFlow {
+        try {
+            Log.d(TAG, "Searching users with query: $query")
+
+            // Get the current user ID to exclude from results
+            val currentUserId = getCurrentUserId()
+
+            // Create a query that fetches users
+            val searchQuery = if (query.isBlank()) {
+                // If query is blank, return all users except current user
+                usersCollection
+            } else {
+                // For non-blank queries, we'll need to do client-side filtering
+                // Fetch a reasonable subset to filter from
+                // Option 1: Get all users and filter client-side
+                usersCollection
+
+                // Option 2 (better for performance): If you have a lowercase_name field
+                // usersCollection.orderBy("lowercase_name")
+                //     .startAt(query.lowercase())
+                //     .endAt(query.lowercase() + "\uf8ff")
+            }
+
+            val snapshotListener = searchQuery.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error searching users: ${error.message}", error)
+                    trySend(Resource.Error(error.message ?: "An unknown error occurred"))
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    try {
+                        val queryLowerCase = query.lowercase()
+
+                        // Apply case-insensitive filtering client-side
+                        val users = snapshot.documents
+                            .mapNotNull { it.toObject(User::class.java) }
+                            .filter { it.id != currentUserId } // Exclude current user
+                            .filter {
+                                // Only apply filter when query isn't blank
+                                query.isBlank() ||
+                                        // Case-insensitive contains match
+                                        it.name?.lowercase()?.contains(queryLowerCase) == true ||
+                                        // Add other fields if needed for searching
+                                        it.profession?.lowercase()?.contains(queryLowerCase) == true
+                            }
+
+                        Log.d(TAG, "Found ${users.size} users matching case-insensitive query: $query")
+                        trySend(Resource.Success(users))
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing search results: ${e.message}", e)
+                        trySend(Resource.Error("Error parsing search results: ${e.message}"))
+                    }
+                } else {
+                    Log.d(TAG, "No users found matching query: $query")
+                    trySend(Resource.Success(emptyList()))
+                }
+            }
+
+            awaitClose { snapshotListener.remove() }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up search query: ${e.message}", e)
+            trySend(Resource.Error("Error setting up search query: ${e.message}"))
+            close(e)
         }
     }
 }

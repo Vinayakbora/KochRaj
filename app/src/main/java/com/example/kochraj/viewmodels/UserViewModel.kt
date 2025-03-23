@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kochraj.domaim.model.User
 import com.example.kochraj.domaim.repository.UserRepository
+import com.example.kochraj.ui.theme.EMPTY_STRING
 import com.example.kochraj.utils.Resource
 import com.example.kochraj.utils.ValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -210,7 +211,7 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    private fun getUserDetails(userId: String) {
+    fun getUserDetails(userId: String) {
         viewModelScope.launch {
             _userState.value = UserState.Loading
             userRepository.getUserById(userId).collect { result ->
@@ -330,23 +331,23 @@ class UserViewModel @Inject constructor(
     private fun updatePersonalDetailsFromUser(user: User) {
         _personalDetailsState.update {
             it.copy(
-                name = user.name,
-                fatherName = user.fatherName,
-                motherName = user.motherName,
-                spouseName = user.spouseName,
-                dateOfBirth = user.dateOfBirth,
-                placeOfBirth = user.placeOfBirth,
-                permanentAddress = user.permanentAddress,
-                presentAddress = user.presentAddress,
-                profession = user.profession,
-                qualification = user.qualification,
-                gender = user.gender,
-                bloodGroup = user.bloodGroup,
-                languagesKnown = user.languages,
-                skills = user.skills,
-                phone = user.phone,
-                email = user.email,
-                photoUrl = user.photoUrl
+                name = user.name ?: EMPTY_STRING,
+                fatherName = user.fatherName ?: EMPTY_STRING,
+                motherName = user.motherName ?: EMPTY_STRING,
+                spouseName = user.spouseName ?: EMPTY_STRING,
+                dateOfBirth = user.dateOfBirth ?: EMPTY_STRING,
+                placeOfBirth = user.placeOfBirth ?: EMPTY_STRING,
+                permanentAddress = user.permanentAddress ?: EMPTY_STRING,
+                presentAddress = user.presentAddress ?: EMPTY_STRING,
+                profession = user.profession ?: EMPTY_STRING,
+                qualification = user.qualification ?: EMPTY_STRING,
+                gender = user.gender ?: EMPTY_STRING,
+                bloodGroup = user.bloodGroup ?: EMPTY_STRING,
+                languagesKnown = user.languages ?: emptyList(),
+                skills = user.skills ?: EMPTY_STRING,
+                phone = user.phone ?: EMPTY_STRING,
+                email = user.email ?: EMPTY_STRING,
+                photoUrl = user.photoUrl ?: EMPTY_STRING
             )
         }
     }

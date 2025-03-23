@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.kochraj.navigation.Routes
+import com.example.kochraj.ui.theme.EMPTY_STRING
 import com.example.kochraj.widgets.BottomNavBar
 
 @Composable
@@ -29,7 +30,10 @@ fun MainScreen(mainNavController: NavController) {
             composable(Routes.SearchScreen.route) { SearchScreen(navController) }
             composable(Routes.PersonalDetailsScreen.route) { PersonalDetailsScreen(navController) }
             composable(Routes.FavoritesScreen.route) { FavoritesScreen(navController) }
-            composable(Routes.ProductDetailsScreen.route) { ProductDetailsScreen(navController) }
+            composable("UserDetailsScreen/{userId}") { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: EMPTY_STRING
+                UserDetailsScreen(navController, userId)
+            }
             composable(Routes.ProfileScreen.route) { ProfileScreen(mainNavController, navController) }
         }
     }

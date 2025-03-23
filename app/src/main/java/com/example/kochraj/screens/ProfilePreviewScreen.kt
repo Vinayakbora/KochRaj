@@ -4,9 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -17,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,6 +30,7 @@ import androidx.navigation.NavController
 import com.example.kochraj.R
 import com.example.kochraj.ui.theme.Aztec
 import com.example.kochraj.ui.theme.EMPTY_STRING
+import com.example.kochraj.ui.theme.MintTulip
 import com.example.kochraj.viewmodels.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +43,8 @@ fun ProfilePreviewScreen(
     val user = if (userState is UserViewModel.UserState.Success) {
         (userState as UserViewModel.UserState.Success).user
     } else null
+
+    val uriHandler = LocalUriHandler.current
 
     Scaffold(
         topBar = {
@@ -72,6 +79,48 @@ fun ProfilePreviewScreen(
             }
 
             item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!user?.phone.isNullOrBlank()) {
+                        IconButton(
+                            onClick = { uriHandler.openUri("tel:+91${user?.phone}") },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MintTulip)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Call,
+                                contentDescription = "Call",
+                                tint = Aztec
+                            )
+                        }
+                    }
+
+                    if (!user?.email.isNullOrBlank()) {
+                        IconButton(
+                            onClick = { uriHandler.openUri("mailto:${user?.email}") },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MintTulip)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = "Email",
+                                tint = Aztec
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
@@ -81,23 +130,6 @@ fun ProfilePreviewScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.Star,
-                            "Star",
-                            tint = Color(0xFFFFC107),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = "4.8 (2k+ Rating)",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                    }
                     Text(
                         text = user?.presentAddress ?: EMPTY_STRING,
                         fontSize = 14.sp,
@@ -137,8 +169,7 @@ fun ProfilePreviewScreen(
                             InfoRow("Profession", user?.profession ?: EMPTY_STRING)
                             InfoRow("Qualification", user?.qualification ?: EMPTY_STRING)
                             InfoRow("Skills", user?.skills ?: EMPTY_STRING)
-                            InfoRow("Languages", (user?.languages ?: EMPTY_STRING).toString())
-
+                            InfoRow("Languages", user?.languages?.joinToString(", ") ?: EMPTY_STRING)
                             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                             InfoRow("Place of Birth", user?.placeOfBirth ?: EMPTY_STRING)
